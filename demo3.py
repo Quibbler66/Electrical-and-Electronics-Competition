@@ -1,6 +1,6 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, \
-    QLineEdit, QPushButton, QLabel, QGraphicsTextItem, QGraphicsLineItem, QHBoxLayout
+    QLineEdit, QPushButton, QLabel, QGraphicsTextItem, QGraphicsLineItem, QHBoxLayout, QGraphicsPixmapItem
 from PyQt5.QtGui import QPainter, QPen, QFont, QPixmap, QBrush, QPalette, QFontDatabase
 from PyQt5.QtCore import Qt
 
@@ -20,17 +20,31 @@ class PlotWidget(QMainWindow):
         self.custom_style = "color: rgb(255, 0, 102); border: 2px solid rgb(0, 255, 0)"
 
         self.setWindowTitle("风力发电机组防雷击电涌保护器热稳定试验电源系统")
-        self.setGeometry(100, 100, 1080, 600)
+        self.setGeometry(100, 100, 1280, 720)
 
         # 加载背景图片
-        self.set_background("Pic/1.webp")
-
+        self.set_background("Pic/Skyline_Background.png")
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
 
-        # 顶层的水平布局
-        top_layout = QHBoxLayout()
+        self.top_scene = QGraphicsScene()
+        self.top_view = QGraphicsView()
+        self.top_view.setScene(self.top_scene)
+        self.top_view.setFixedSize(1000, 61)  # 根据需要调整大小
+        self.top_view.setStyleSheet("border: 0px;")  # 可选，移除边框
+        # 设置场景的背景刷为透明
+        self.top_view.setBackgroundBrush(Qt.transparent)
+        # 启用视图的透明背景属性
+        self.top_view.setAttribute(Qt.WA_TranslucentBackground)
+        self.add_pics()
+
+        # 顶层的垂直布局
+        top_layout = QVBoxLayout()
         central_widget.setLayout(top_layout)
+
+        # 数据层的水平布局
+        data_layout = QHBoxLayout()
+        central_widget.setLayout(data_layout)
 
         # 左侧的垂直布局
         left_layout = QVBoxLayout()
@@ -49,8 +63,10 @@ class PlotWidget(QMainWindow):
         central_widget.setLayout(plot_layout)
 
         # 将两侧的布局添加到顶层的水平布局
-        top_layout.addLayout(left_layout, 1)
-        top_layout.addLayout(right_layout, 3)
+        data_layout.addLayout(left_layout, 1)
+        data_layout.addLayout(right_layout, 3)
+        top_layout.addLayout(data_layout)
+        top_layout.insertWidget(0, self.top_view)  # 将 top_view 添加到顶层布局的最上方
 
         # 将logo布局添加到右侧布局
         right_layout.addLayout(plot_layout)
@@ -120,6 +136,16 @@ class PlotWidget(QMainWindow):
         # Draw axis and legend
         self.draw_axis()
         self.draw_legend()
+
+    def add_pics(self):
+        # 加载素材图片
+        title_bar_above = QPixmap("Pic/Title_Bar_Above.png")
+
+        self.titlebar = QGraphicsPixmapItem(title_bar_above)
+        self.titlebar.setPos(30, 50)
+
+        # 将图片添加到场景中
+        self.top_scene.addItem(self.titlebar)
 
     def set_background(self, image_path):  # 设定背景图片
         # 加载图片
@@ -244,6 +270,11 @@ class PlotView(QGraphicsView):
     def __init__(self):
         super().__init__()
         self.setRenderHint(QPainter.Antialiasing)
+
+        # 设置场景的背景刷为透明
+        self.setBackgroundBrush(Qt.transparent)
+        # 启用视图的透明背景属性
+        self.setAttribute(Qt.WA_TranslucentBackground)
 
 
 if __name__ == "__main__":
