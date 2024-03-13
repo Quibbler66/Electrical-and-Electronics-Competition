@@ -10,7 +10,7 @@ class PlotWidget(QMainWindow):
         super().__init__()
 
         # 加载字体文件
-        font_id = QFontDatabase.addApplicationFont("Font/AaWuDaoJia-2.ttf")
+        font_id = QFontDatabase.addApplicationFont("Font/DouyinSansBold.otf")
         if font_id != -1:
             font_families = QFontDatabase.applicationFontFamilies(font_id)
             self.custom_font = QFont(font_families[0], 20)
@@ -18,7 +18,6 @@ class PlotWidget(QMainWindow):
             print("Fail to load font")
 
         self.custom_style = "color: rgb(255, 0, 102); border: 2px solid rgb(0, 255, 0)"
-
         self.setWindowTitle("风力发电机组防雷击电涌保护器热稳定试验电源系统")
         self.setGeometry(100, 100, 1280, 720)
 
@@ -26,17 +25,6 @@ class PlotWidget(QMainWindow):
         self.set_background("Pic/Skyline_Background.png")
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
-
-        self.top_scene = QGraphicsScene()
-        self.top_view = QGraphicsView()
-        self.top_view.setScene(self.top_scene)
-        self.top_view.setFixedSize(1000, 61)  # 根据需要调整大小
-        self.top_view.setStyleSheet("border: 0px;")  # 可选，移除边框
-        # 设置场景的背景刷为透明
-        self.top_view.setBackgroundBrush(Qt.transparent)
-        # 启用视图的透明背景属性
-        self.top_view.setAttribute(Qt.WA_TranslucentBackground)
-        self.add_pics()
 
         # 顶层的垂直布局
         top_layout = QVBoxLayout()
@@ -62,11 +50,10 @@ class PlotWidget(QMainWindow):
         plot_layout = QHBoxLayout()
         central_widget.setLayout(plot_layout)
 
-        # 将两侧的布局添加到顶层的水平布局
+        # 将两侧及数据层的布局添加到顶层的水平布局
         data_layout.addLayout(left_layout, 1)
         data_layout.addLayout(right_layout, 3)
         top_layout.addLayout(data_layout)
-        top_layout.insertWidget(0, self.top_view)  # 将 top_view 添加到顶层布局的最上方
 
         # 将logo布局添加到右侧布局
         right_layout.addLayout(plot_layout)
@@ -74,6 +61,24 @@ class PlotWidget(QMainWindow):
 
         # 左侧上边距
         left_layout.addSpacing(50)
+
+        # 加载控件素材并设置属性
+
+        # 顶部标题栏背景
+        self.bar_scene = QGraphicsScene()
+        self.bar_view = QGraphicsView()
+        self.bar_view.setScene(self.bar_scene)
+        self.bar_view.setStyleSheet("border: 0px; background-color: transparent;")  # 移除边框
+        top_layout.insertWidget(0, self.bar_view)
+        # 标题栏文字
+        self.bar_left = QGraphicsTextItem("数据呈现")
+        self.bar_left.setFont(self.custom_font)
+        self.bar_scene.addItem(self.bar_left)
+        self.bar_left.setPos(45, 60)
+        self.bar_left.setZValue(1)
+
+        # 调用素材
+        self.add_pics()
 
         # Create input fields and add point button
         self.time_label = QLabel("时间:")
@@ -145,7 +150,7 @@ class PlotWidget(QMainWindow):
         self.titlebar.setPos(30, 50)
 
         # 将图片添加到场景中
-        self.top_scene.addItem(self.titlebar)
+        self.bar_scene.addItem(self.titlebar)
 
     def set_background(self, image_path):  # 设定背景图片
         # 加载图片
