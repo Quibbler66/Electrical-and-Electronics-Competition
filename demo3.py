@@ -9,14 +9,22 @@ class PlotWidget(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        # 加载字体文件
-        font_id = QFontDatabase.addApplicationFont("Font/DouyinSansBold.otf")
-        if font_id != -1:
-            font_families = QFontDatabase.applicationFontFamilies(font_id)
-            self.custom_font = QFont(font_families[0], 20)
-        else:
-            print("Fail to load font")
+        # 加载多个字体文件
+        self.fonts = {}
+        font_files = ["Font/DouyinSansBold.otf", "Font/庞门正道标题体.ttf"]
+        font_names = ["DouyinSansBold", "庞门正道标题体"]
 
+        for font_file, font_name in zip(font_files, font_names):
+            font_id = QFontDatabase.addApplicationFont(font_file)
+            if font_id != -1:
+                font_families = QFontDatabase.applicationFontFamilies(font_id)
+                if font_families:
+                    self.fonts[font_name] = QFont(font_families[0], 20)
+            else:
+                print(f"Fail to load font from {font_file}")
+
+        self.bar_font = self.fonts["DouyinSansBold"]
+        self.label_font = self.fonts["庞门正道标题体"]
         self.custom_style = "color: rgb(255, 0, 102); border: 2px solid rgb(0, 255, 0)"
         self.setWindowTitle("风力发电机组防雷击电涌保护器热稳定试验电源系统")
         self.setGeometry(100, 100, 1280, 720)
@@ -35,8 +43,8 @@ class PlotWidget(QMainWindow):
         central_widget.setLayout(data_layout)
 
         # 左侧的垂直布局
-        left_layout = QVBoxLayout()
-        central_widget.setLayout(left_layout)
+        self.left_layout = QVBoxLayout()
+        central_widget.setLayout(self.left_layout)
 
         # 右侧的垂直布局
         right_layout = QVBoxLayout()
@@ -51,7 +59,7 @@ class PlotWidget(QMainWindow):
         central_widget.setLayout(plot_layout)
 
         # 将两侧及数据层的布局添加到顶层的水平布局
-        data_layout.addLayout(left_layout, 1)
+        data_layout.addLayout(self.left_layout, 1)
         data_layout.addLayout(right_layout, 3)
         top_layout.addLayout(data_layout)
 
@@ -60,7 +68,7 @@ class PlotWidget(QMainWindow):
         right_layout.addLayout(logo_layout)
 
         # 左侧上边距
-        left_layout.addSpacing(50)
+        self.left_layout.addSpacing(50)
 
         # 加载控件素材并设置属性
 
@@ -72,7 +80,7 @@ class PlotWidget(QMainWindow):
         top_layout.insertWidget(0, self.bar_view)
         # 标题栏文字
         self.bar_left = QGraphicsTextItem("数据呈现")
-        self.bar_left.setFont(self.custom_font)
+        self.bar_left.setFont(self.bar_font)
         self.bar_scene.addItem(self.bar_left)
         self.bar_left.setPos(45, 60)
         self.bar_left.setZValue(1)
@@ -80,45 +88,14 @@ class PlotWidget(QMainWindow):
         # 调用素材
         self.add_pics()
 
-        # Create input fields and add point button
-        self.time_label = QLabel("时间:")
-        self.time_label.setFixedWidth(100)
-        self.time_label.setFont(self.custom_font)
-        self.time_label.setStyleSheet(self.custom_style)
-        left_layout.addWidget(self.time_label)
-        self.time_edit = QLineEdit()
-        self.time_edit.setFixedWidth(200)
-        self.time_edit.setFixedHeight(30)
-        left_layout.addWidget(self.time_edit)
-        left_layout.addSpacing(30)  # 添加额外的间距
-
-        self.current_label = QLabel("电流:")
-        self.current_label.setFixedWidth(100)
-        self.current_label.setFont(self.custom_font)
-        self.current_label.setStyleSheet(self.custom_style)
-        left_layout.addWidget(self.current_label)
-        self.current_edit = QLineEdit()
-        self.current_edit.setFixedWidth(200)
-        self.current_edit.setFixedHeight(30)
-        left_layout.addWidget(self.current_edit)
-        left_layout.addSpacing(30)  # 添加额外的间距
-
-        self.temp_label = QLabel("温度:")
-        self.temp_label.setFixedWidth(100)
-        self.temp_label.setFont(self.custom_font)
-        self.temp_label.setStyleSheet(self.custom_style)
-        left_layout.addWidget(self.temp_label)
-        self.temp_edit = QLineEdit()
-        self.temp_edit.setFixedWidth(200)
-        self.temp_edit.setFixedHeight(30)
-        left_layout.addWidget(self.temp_edit)
-        left_layout.addSpacing(200)  # 添加额外的间距
+        # 加载时间、电流、温度标签
+        self.set_label()
 
         self.add_button = QPushButton("添加点")
         self.add_button.setFixedWidth(250)
-        left_layout.addWidget(self.add_button)
+        self.left_layout.addWidget(self.add_button)
         self.add_button.clicked.connect(self.add_point)
-        left_layout.addStretch(1)  # 添加伸缩项
+        self.left_layout.addStretch(1)  # 添加伸缩项
 
         # Create plot view and scene
         self.plot_view = PlotView()
@@ -151,6 +128,41 @@ class PlotWidget(QMainWindow):
 
         # 将图片添加到场景中
         self.bar_scene.addItem(self.titlebar)
+
+    def set_label(self):
+        # 加载时间、电流、温度标签
+        self.time_label = QLabel("时间:")
+        self.time_label.setFixedWidth(100)
+        self.time_label.setFont(self.label_font)
+        self.time_label.setStyleSheet(self.custom_style)
+        self.left_layout.addWidget(self.time_label)
+        self.time_edit = QLineEdit()
+        self.time_edit.setFixedWidth(200)
+        self.time_edit.setFixedHeight(30)
+        self.left_layout.addWidget(self.time_edit)
+        self.left_layout.addSpacing(30)  # 添加额外的间距
+
+        self.current_label = QLabel("电流:")
+        self.current_label.setFixedWidth(100)
+        self.current_label.setFont(self.label_font)
+        self.current_label.setStyleSheet(self.custom_style)
+        self.left_layout.addWidget(self.current_label)
+        self.current_edit = QLineEdit()
+        self.current_edit.setFixedWidth(200)
+        self.current_edit.setFixedHeight(30)
+        self.left_layout.addWidget(self.current_edit)
+        self.left_layout.addSpacing(30)  # 添加额外的间距
+
+        self.temp_label = QLabel("温度:")
+        self.temp_label.setFixedWidth(100)
+        self.temp_label.setFont(self.label_font)
+        self.temp_label.setStyleSheet(self.custom_style)
+        self.left_layout.addWidget(self.temp_label)
+        self.temp_edit = QLineEdit()
+        self.temp_edit.setFixedWidth(200)
+        self.temp_edit.setFixedHeight(30)
+        self.left_layout.addWidget(self.temp_edit)
+        self.left_layout.addSpacing(200)  # 添加额外的间距
 
     def set_background(self, image_path):  # 设定背景图片
         # 加载图片
