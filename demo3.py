@@ -1,36 +1,20 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, \
     QLineEdit, QPushButton, QLabel, QGraphicsTextItem, QGraphicsLineItem, QHBoxLayout, QGraphicsPixmapItem
-from PyQt5.QtGui import QPainter, QPen, QFont, QPixmap, QBrush, QPalette, QFontDatabase
+from PyQt5.QtGui import QPainter, QPen, QFont, QPixmap, QBrush, QPalette, QFontDatabase, QColor
 from PyQt5.QtCore import Qt
 
 
 class PlotWidget(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.load_fonts()
+        bar_font_config = FontConfig(self.fonts["DouyinSansBold"], 18, QColor(255, 255, 255))
+        self.label_font_config = FontConfig(self.label_font, 15, QColor(255, 0, 102), "border: 2px solid rgb(0, 255, 0)")
 
-        # 加载多个字体文件
-        self.fonts = {}
-        font_files = ["Font/DouyinSansBold.otf", "Font/庞门正道标题体.ttf"]
-        font_names = ["DouyinSansBold", "庞门正道标题体"]
-
-        for font_file, font_name in zip(font_files, font_names):
-            font_id = QFontDatabase.addApplicationFont(font_file)
-            if font_id != -1:
-                font_families = QFontDatabase.applicationFontFamilies(font_id)
-                if font_families:
-                    self.fonts[font_name] = QFont(font_families[0], 20)
-            else:
-                print(f"Fail to load font from {font_file}")
-
-        self.bar_font = self.fonts["DouyinSansBold"]
-        self.label_font = self.fonts["庞门正道标题体"]
-        self.custom_style = "color: rgb(255, 0, 102); border: 2px solid rgb(0, 255, 0)"
         self.setWindowTitle("风力发电机组防雷击电涌保护器热稳定试验电源系统")
         self.setGeometry(100, 100, 1280, 720)
 
-        # 加载背景图片
-        self.set_background("Pic/Skyline_Background.png")
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
 
@@ -51,12 +35,12 @@ class PlotWidget(QMainWindow):
         central_widget.setLayout(right_layout)
 
         # logo附近的水平布局
-        logo_layout = QHBoxLayout()
-        central_widget.setLayout(logo_layout)
+        self.logo_layout = QHBoxLayout()
+        central_widget.setLayout(self.logo_layout)
 
         # logo附近的水平布局
-        plot_layout = QHBoxLayout()
-        central_widget.setLayout(plot_layout)
+        self.plot_layout = QHBoxLayout()
+        central_widget.setLayout(self.plot_layout)
 
         # 将两侧及数据层的布局添加到顶层的水平布局
         data_layout.addLayout(self.left_layout, 1)
@@ -64,14 +48,13 @@ class PlotWidget(QMainWindow):
         top_layout.addLayout(data_layout)
 
         # 将logo布局添加到右侧布局
-        right_layout.addLayout(plot_layout)
-        right_layout.addLayout(logo_layout)
+        right_layout.addLayout(self.plot_layout)
+        right_layout.addLayout(self.logo_layout)
 
         # 左侧上边距
         self.left_layout.addSpacing(50)
 
         # 加载控件素材并设置属性
-
         # 顶部标题栏背景
         self.bar_scene = QGraphicsScene()
         self.bar_view = QGraphicsView()
@@ -80,7 +63,7 @@ class PlotWidget(QMainWindow):
         top_layout.insertWidget(0, self.bar_view)
         # 标题栏文字
         self.bar_left = QGraphicsTextItem("数据呈现")
-        self.bar_left.setFont(self.bar_font)
+        bar_font_config.apply_font(self.bar_left)
         self.bar_scene.addItem(self.bar_left)
         self.bar_left.setPos(45, 60)
         self.bar_left.setZValue(1)
@@ -97,44 +80,53 @@ class PlotWidget(QMainWindow):
         self.add_button.clicked.connect(self.add_point)
         self.left_layout.addStretch(1)  # 添加伸缩项
 
-        # Create plot view and scene
-        self.plot_view = PlotView()
-        self.plot_view.setFixedSize(800, 400)  # 设置图表的固定大小
-        self.plot_view.setStyleSheet("background-color: lightblue;")  # 设置图表背景颜色
-        plot_layout.addWidget(self.plot_view)
-        self.plot_scene = QGraphicsScene()
-        self.plot_view.setScene(self.plot_scene)
+        # 加载图表
+        self.set_plot()
 
-        # 创建 QLabel 用于显示 logo 图像
-        self.logo_label = QLabel()
-        logo_pixmap = QPixmap("Pic/logo.png")  # 加载 logo 图像
-        self.logo_label.setPixmap(logo_pixmap)
-        logo_layout.addStretch()
-        logo_layout.addWidget(self.logo_label)
+    def load_fonts(self):
+        # 加载多个字体文件
+        self.fonts = {}
+        font_files = ["Font/DouyinSansBold.otf", "Font/庞门正道标题体.ttf"]
+        font_names = ["DouyinSansBold", "庞门正道标题体"]
 
-        # Data storage
-        self.data = []
+        for font_file, font_name in zip(font_files, font_names):
+            font_id = QFontDatabase.addApplicationFont(font_file)
+            if font_id != -1:
+                font_families = QFontDatabase.applicationFontFamilies(font_id)
+                if font_families:
+                    self.fonts[font_name] = QFont(font_families[0], 20)
+            else:
+                print(f"Fail to load font from {font_file}")
 
-        # Draw axis and legend
-        self.draw_axis()
-        self.draw_legend()
+        # 设定字体
+        self.label_font = self.fonts["庞门正道标题体"]
 
-    def add_pics(self):
-        # 加载素材图片
+    def add_pics(self):  # 加载素材图片
+        # 设定背景图片
+        pixmap = QPixmap("Pic/Skyline_Background.png")
+        brush = QBrush(pixmap)  # 创建画刷并设置纹理
+        palette = self.palette()  # 获取调色板并设置画刷作为背景
+        palette.setBrush(QPalette.Background, brush)
+        self.setPalette(palette)
+
+        # 设定标题栏图片
         title_bar_above = QPixmap("Pic/Title_Bar_Above.png")
-
         self.titlebar = QGraphicsPixmapItem(title_bar_above)
         self.titlebar.setPos(30, 50)
+        self.bar_scene.addItem(self.titlebar)  # 将图片添加到场景中
 
-        # 将图片添加到场景中
-        self.bar_scene.addItem(self.titlebar)
+        # 设定logo图片
+        self.logo_label = QLabel()
+        logo_pixmap = QPixmap("Pic/logo.png")
+        self.logo_label.setPixmap(logo_pixmap)
+        self.logo_layout.addStretch()
+        self.logo_layout.addWidget(self.logo_label)
 
     def set_label(self):
         # 加载时间、电流、温度标签
         self.time_label = QLabel("时间:")
         self.time_label.setFixedWidth(100)
-        self.time_label.setFont(self.label_font)
-        self.time_label.setStyleSheet(self.custom_style)
+        self.label_font_config.apply_font(self.time_label)
         self.left_layout.addWidget(self.time_label)
         self.time_edit = QLineEdit()
         self.time_edit.setFixedWidth(200)
@@ -144,8 +136,7 @@ class PlotWidget(QMainWindow):
 
         self.current_label = QLabel("电流:")
         self.current_label.setFixedWidth(100)
-        self.current_label.setFont(self.label_font)
-        self.current_label.setStyleSheet(self.custom_style)
+        self.label_font_config.apply_font(self.current_label)
         self.left_layout.addWidget(self.current_label)
         self.current_edit = QLineEdit()
         self.current_edit.setFixedWidth(200)
@@ -155,8 +146,7 @@ class PlotWidget(QMainWindow):
 
         self.temp_label = QLabel("温度:")
         self.temp_label.setFixedWidth(100)
-        self.temp_label.setFont(self.label_font)
-        self.temp_label.setStyleSheet(self.custom_style)
+        self.label_font_config.apply_font(self.temp_label)
         self.left_layout.addWidget(self.temp_label)
         self.temp_edit = QLineEdit()
         self.temp_edit.setFixedWidth(200)
@@ -164,17 +154,21 @@ class PlotWidget(QMainWindow):
         self.left_layout.addWidget(self.temp_edit)
         self.left_layout.addSpacing(200)  # 添加额外的间距
 
-    def set_background(self, image_path):  # 设定背景图片
-        # 加载图片
-        pixmap = QPixmap(image_path)
+    def set_plot(self):
+        # Create plot view and scene
+        self.plot_view = PlotView()
+        self.plot_view.setFixedSize(800, 400)  # 设置图表的固定大小
+        self.plot_view.setStyleSheet("background-color: lightblue;")  # 设置图表背景颜色
+        self.plot_layout.addWidget(self.plot_view)
+        self.plot_scene = QGraphicsScene()
+        self.plot_view.setScene(self.plot_scene)
 
-        # 创建画刷并设置纹理
-        brush = QBrush(pixmap)
+        # Data storage
+        self.data = []
 
-        # 获取调色板并设置画刷作为背景
-        palette = self.palette()
-        palette.setBrush(QPalette.Background, brush)
-        self.setPalette(palette)
+        # Draw axis and legend
+        self.draw_axis()
+        self.draw_legend()
 
     def draw_axis(self):
         # Draw X axis
@@ -292,6 +286,26 @@ class PlotView(QGraphicsView):
         self.setBackgroundBrush(Qt.transparent)
         # 启用视图的透明背景属性
         self.setAttribute(Qt.WA_TranslucentBackground)
+
+
+class FontConfig:
+    def __init__(self, font: QFont, font_size = 12, font_color = QColor(0, 0, 0), border_style = "none"):
+        self.font = QFont(font)
+        self.font.setPointSize(font_size)
+        self.font_color = font_color
+        self.border_style = border_style  # 设置边框样式
+
+    def apply_font(self, widget):
+        css = f"color: {self.font_color.name()}; border: {self.border_style};"  # 用CSS设置字体样式
+
+        if isinstance(widget, QLabel):
+            # 应用字体和颜色到 QLabel
+            widget.setFont(self.font)
+            widget.setStyleSheet(css)
+        elif isinstance(widget, QGraphicsTextItem):
+            # 应用字体到 QGraphicsTextItem
+            widget.setFont(self.font)
+            widget.setDefaultTextColor(self.font_color)
 
 
 if __name__ == "__main__":
