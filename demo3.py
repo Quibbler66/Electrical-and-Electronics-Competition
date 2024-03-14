@@ -9,8 +9,10 @@ class PlotWidget(QMainWindow):
     def __init__(self):
         super().__init__()
         self.load_fonts()
-        bar_font_config = FontConfig(self.fonts["DouyinSansBold"], 18, QColor(255, 255, 255))
-        self.label_font_config = FontConfig(self.label_font, 15, QColor(255, 0, 102), "border: 2px solid rgb(0, 255, 0)")
+        bar_font_config = FontConfig(self.fonts["DouyinSansBold"], 16, QColor(255, 255, 255))
+        title_font_config = FontConfig(self.fonts["DouyinSansBold"], 17, QColor(56, 87, 35))
+        self.label_font_config = FontConfig(self.label_font, 15, QColor(255, 0, 102),
+                                            "border: 2px solid rgb(0, 255, 0)")
 
         self.setWindowTitle("风力发电机组防雷击电涌保护器热稳定试验电源系统")
         self.setGeometry(100, 100, 1280, 720)
@@ -65,8 +67,20 @@ class PlotWidget(QMainWindow):
         self.bar_left = QGraphicsTextItem("数据呈现")
         bar_font_config.apply_font(self.bar_left)
         self.bar_scene.addItem(self.bar_left)
-        self.bar_left.setPos(45, 60)
+        self.bar_left.setPos(51, 62)
         self.bar_left.setZValue(1)
+
+        self.bar_middle = QGraphicsTextItem("风力发电机组防雷击电涌保护器热稳定试验电源系统")
+        title_font_config.apply_font(self.bar_middle)
+        self.bar_scene.addItem(self.bar_middle)
+        self.bar_middle.setPos(203, 62)
+        self.bar_middle.setZValue(1)
+
+        self.bar_right = QGraphicsTextItem("图表呈现")
+        bar_font_config.apply_font(self.bar_right)
+        self.bar_scene.addItem(self.bar_right)
+        self.bar_right.setPos(893, 62)
+        self.bar_right.setZValue(1)
 
         # 调用素材
         self.add_pics()
