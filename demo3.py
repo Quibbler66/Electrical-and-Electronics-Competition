@@ -19,23 +19,8 @@ class PlotWidget(QMainWindow):
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
 
-
-        # 右侧的垂直布局
-        right_layout = QVBoxLayout()
-
-        # logo附近的水平布局
-        self.logo_layout = QHBoxLayout()
-
-        # logo附近的水平布局
-        self.plot_layout = QHBoxLayout()
-
         # 加载时间、电流、温度标签
         self.set_label()
-
-
-        # 将logo布局添加到右侧布局
-        right_layout.addLayout(self.plot_layout)
-        right_layout.addLayout(self.logo_layout)
 
         # 加载标题栏
         self.set_title()
@@ -113,17 +98,9 @@ class PlotWidget(QMainWindow):
         self.label_bg.setPos(50, 200)
         self.label_background_scene.addItem(self.label_bg)
 
-        # 设定logo图片
-        self.logo_label = QLabel()
-        logo_pixmap = QPixmap("Pic/logo.png")
-        self.logo_label.setPixmap(logo_pixmap)
-        self.logo_layout.addStretch()
-        self.logo_layout.addWidget(self.logo_label)
-
     def set_label(self):
         self.label_container = QWidget(self.central_widget)
         self.label_container.setGeometry(140, 200, 340, 500)
-
         self.label_background_scene = QGraphicsScene()
         self.label_background_view = QGraphicsView(self.label_container)
         self.label_background_view.setScene(self.label_background_scene)
@@ -152,14 +129,23 @@ class PlotWidget(QMainWindow):
         self.add_button.setGeometry(105, 160, 100, 30)
         self.add_button.clicked.connect(self.add_point)
 
+        # 添加logo
+        # 设定logo图片
+        self.logo_pixmap = QPixmap("Pic/logo.png")
+        self.logo_label = QLabel(self.label_container)
+        self.logo_label.setPixmap(self.logo_pixmap)
+        self.logo_label.setGeometry(0, 400, 340, 100)
+
     def set_plot(self):
         # Create plot view and scene
-        self.plot_view = PlotView()
-        self.plot_view.setFixedSize(800, 400)  # 设置图表的固定大小
+        self.plot_container = QWidget(self.central_widget)
+        self.plot_container.setGeometry(500, 100, 800, 600)
+        self.plot_view = PlotView(self.plot_container)
+        self.plot_view.setFixedSize(800, 600)  # 设置图表的固定大小
         self.plot_view.setStyleSheet("background-color: lightblue;")  # 设置图表背景颜色
-        self.plot_layout.addWidget(self.plot_view)
         self.plot_scene = QGraphicsScene()
         self.plot_view.setScene(self.plot_scene)
+        self.plot_view.setStyleSheet("border: 0px; background-color: transparent;")  # 移除边框
 
         # Data storage
         self.data = []
@@ -276,8 +262,8 @@ class PlotWidget(QMainWindow):
 
 
 class PlotView(QGraphicsView):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent = None):
+        super().__init__(parent)
         self.setRenderHint(QPainter.Antialiasing)
 
         # 设置场景的背景刷为透明
