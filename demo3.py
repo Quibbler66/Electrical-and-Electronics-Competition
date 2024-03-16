@@ -11,21 +11,14 @@ class PlotWidget(QMainWindow):
         self.load_fonts()
         self.bar_font_config = FontConfig(self.fonts["DouyinSansBold"], 16, QColor(255, 255, 255))
         self.title_font_config = FontConfig(self.fonts["DouyinSansBold"], 17, QColor(56, 87, 35))
-        self.label_font_config = FontConfig(self.label_font, 15, QColor(255, 0, 102),
-                                            "border: 2px solid rgb(0, 255, 0)")
+        self.label_font_config = FontConfig(self.label_font, 21, QColor(56, 87, 35))
 
         self.setWindowTitle("风力发电机组防雷击电涌保护器热稳定试验电源系统")
         self.setGeometry(100, 100, 1280, 720)
 
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
+        self.central_widget = QWidget()
+        self.setCentralWidget(self.central_widget)
 
-        # 顶层的垂直布局
-        self.top_layout = QVBoxLayout()
-        central_widget.setLayout(self.top_layout)
-
-        # 数据层的水平布局
-        data_layout = QHBoxLayout()
 
         # 右侧的垂直布局
         right_layout = QVBoxLayout()
@@ -39,10 +32,6 @@ class PlotWidget(QMainWindow):
         # 加载时间、电流、温度标签
         self.set_label()
 
-        # 将两侧及数据层的布局添加到顶层的水平布局
-        data_layout.addWidget(self.label_container, 1)
-        data_layout.addLayout(right_layout, 1)
-        self.top_layout.addLayout(data_layout)
 
         # 将logo布局添加到右侧布局
         right_layout.addLayout(self.plot_layout)
@@ -59,12 +48,14 @@ class PlotWidget(QMainWindow):
 
     def set_title(self):
         # 加载控件素材并设置属性
+        self.title_container = QWidget(self.central_widget)
+        self.title_container.setGeometry(140, 50, 1000, 60)
+
         # 顶部标题栏背景
         self.bar_scene = QGraphicsScene()
-        self.bar_view = QGraphicsView()
+        self.bar_view = QGraphicsView(self.title_container)
         self.bar_view.setScene(self.bar_scene)
         self.bar_view.setStyleSheet("border: 0px; background-color: transparent;")  # 移除边框
-        self.top_layout.insertWidget(0, self.bar_view)
         # 标题栏文字
         self.bar_left = QGraphicsTextItem("数据呈现")
         self.bar_font_config.apply_font(self.bar_left)
@@ -130,8 +121,8 @@ class PlotWidget(QMainWindow):
         self.logo_layout.addWidget(self.logo_label)
 
     def set_label(self):
-        self.label_container = QWidget(self)
-        self.label_container.setGeometry(100, 100, 300, 300)
+        self.label_container = QWidget(self.central_widget)
+        self.label_container.setGeometry(140, 200, 340, 500)
 
         self.label_background_scene = QGraphicsScene()
         self.label_background_view = QGraphicsView(self.label_container)
@@ -139,26 +130,26 @@ class PlotWidget(QMainWindow):
         self.label_background_view.setStyleSheet("border: 0px; background-color: transparent;")  # 移除边框
 
         # 加载时间、电流、温度标签
-        self.time_label = QLabel("时间:", self.label_container)
-        self.time_label.setGeometry(0, 0, 100, 30)
+        self.time_label = QLabel("时间", self.label_container)
+        self.time_label.setGeometry(170, 10, 100, 30)
         self.label_font_config.apply_font(self.time_label)
         self.time_edit = QLineEdit(self.label_container)
-        self.time_edit.setGeometry(100, 0, 200, 30)
+        self.time_edit.setGeometry(105, 50, 200, 50)
 
-        self.current_label = QLabel("电流:", self.label_container)
-        self.current_label.setGeometry(0, 40, 100, 30)
+        self.current_label = QLabel("电流", self.label_container)
+        self.current_label.setGeometry(170, 150, 100, 30)
         self.label_font_config.apply_font(self.current_label)
         self.current_edit = QLineEdit(self.label_container)
-        self.current_edit.setGeometry(100, 40, 200, 30)
+        self.current_edit.setGeometry(105, 190, 200, 50)
 
-        self.temp_label = QLabel("温度:", self.label_container)
-        self.temp_label.setGeometry(0, 80, 100, 30)
+        self.temp_label = QLabel("温度", self.label_container)
+        self.temp_label.setGeometry(170, 290, 100, 30)
         self.label_font_config.apply_font(self.temp_label)
         self.temp_edit = QLineEdit(self.label_container)
-        self.temp_edit.setGeometry(100, 80, 200, 30)
+        self.temp_edit.setGeometry(105, 330, 200, 50)
 
         self.add_button = QPushButton("添加点", self.label_container)
-        self.add_button.setGeometry(0, 120, 100, 30)
+        self.add_button.setGeometry(105, 160, 100, 30)
         self.add_button.clicked.connect(self.add_point)
 
     def set_plot(self):
