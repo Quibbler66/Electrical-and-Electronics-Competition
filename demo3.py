@@ -9,93 +9,56 @@ class PlotWidget(QMainWindow):
     def __init__(self):
         super().__init__()
         self.load_fonts()
-        bar_font_config = FontConfig(self.fonts["DouyinSansBold"], 16, QColor(255, 255, 255))
-        title_font_config = FontConfig(self.fonts["DouyinSansBold"], 17, QColor(56, 87, 35))
-        self.label_font_config = FontConfig(self.label_font, 15, QColor(255, 0, 102),
-                                            "border: 2px solid rgb(0, 255, 0)")
+        self.bar_font_config = FontConfig(self.fonts["DouyinSansBold"], 16, QColor(255, 255, 255))
+        self.title_font_config = FontConfig(self.fonts["DouyinSansBold"], 17, QColor(56, 87, 35))
+        self.label_font_config = FontConfig(self.label_font, 21, QColor(56, 87, 35))
 
         self.setWindowTitle("风力发电机组防雷击电涌保护器热稳定试验电源系统")
         self.setGeometry(100, 100, 1280, 720)
 
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
+        self.central_widget = QWidget()
+        self.setCentralWidget(self.central_widget)
 
-        # 顶层的垂直布局
-        top_layout = QVBoxLayout()
-        central_widget.setLayout(top_layout)
+        # 加载时间、电流、温度标签
+        self.set_label()
 
-        # 数据层的水平布局
-        data_layout = QHBoxLayout()
-        central_widget.setLayout(data_layout)
+        # 加载标题栏
+        self.set_title()
 
-        # 左侧的垂直布局
-        self.left_layout = QVBoxLayout()
-        central_widget.setLayout(self.left_layout)
+        # 调用素材
+        self.add_pics()
 
-        # 右侧的垂直布局
-        right_layout = QVBoxLayout()
-        central_widget.setLayout(right_layout)
+        # 加载图表
+        self.set_plot()
 
-        # logo附近的水平布局
-        self.logo_layout = QHBoxLayout()
-        central_widget.setLayout(self.logo_layout)
-
-        # logo附近的水平布局
-        self.plot_layout = QHBoxLayout()
-        central_widget.setLayout(self.plot_layout)
-
-        # 将两侧及数据层的布局添加到顶层的水平布局
-        data_layout.addLayout(self.left_layout, 1)
-        data_layout.addLayout(right_layout, 3)
-        top_layout.addLayout(data_layout)
-
-        # 将logo布局添加到右侧布局
-        right_layout.addLayout(self.plot_layout)
-        right_layout.addLayout(self.logo_layout)
-
-        # 左侧上边距
-        self.left_layout.addSpacing(50)
-
+    def set_title(self):
         # 加载控件素材并设置属性
+        self.title_container = QWidget(self.central_widget)
+        self.title_container.setGeometry(140, 50, 1000, 60)
+
         # 顶部标题栏背景
         self.bar_scene = QGraphicsScene()
-        self.bar_view = QGraphicsView()
+        self.bar_view = QGraphicsView(self.title_container)
         self.bar_view.setScene(self.bar_scene)
         self.bar_view.setStyleSheet("border: 0px; background-color: transparent;")  # 移除边框
-        top_layout.insertWidget(0, self.bar_view)
         # 标题栏文字
         self.bar_left = QGraphicsTextItem("数据呈现")
-        bar_font_config.apply_font(self.bar_left)
+        self.bar_font_config.apply_font(self.bar_left)
         self.bar_scene.addItem(self.bar_left)
         self.bar_left.setPos(51, 62)
         self.bar_left.setZValue(1)
 
         self.bar_middle = QGraphicsTextItem("风力发电机组防雷击电涌保护器热稳定试验电源系统")
-        title_font_config.apply_font(self.bar_middle)
+        self.title_font_config.apply_font(self.bar_middle)
         self.bar_scene.addItem(self.bar_middle)
         self.bar_middle.setPos(203, 62)
         self.bar_middle.setZValue(1)
 
         self.bar_right = QGraphicsTextItem("图表呈现")
-        bar_font_config.apply_font(self.bar_right)
+        self.bar_font_config.apply_font(self.bar_right)
         self.bar_scene.addItem(self.bar_right)
         self.bar_right.setPos(893, 62)
         self.bar_right.setZValue(1)
-
-        # 调用素材
-        self.add_pics()
-
-        # 加载时间、电流、温度标签
-        self.set_label()
-
-        self.add_button = QPushButton("添加点")
-        self.add_button.setFixedWidth(250)
-        self.left_layout.addWidget(self.add_button)
-        self.add_button.clicked.connect(self.add_point)
-        self.left_layout.addStretch(1)  # 添加伸缩项
-
-        # 加载图表
-        self.set_plot()
 
     def load_fonts(self):
         # 加载多个字体文件
@@ -129,53 +92,60 @@ class PlotWidget(QMainWindow):
         self.titlebar.setPos(30, 50)
         self.bar_scene.addItem(self.titlebar)  # 将图片添加到场景中
 
-        # 设定logo图片
-        self.logo_label = QLabel()
-        logo_pixmap = QPixmap("Pic/logo.png")
-        self.logo_label.setPixmap(logo_pixmap)
-        self.logo_layout.addStretch()
-        self.logo_layout.addWidget(self.logo_label)
+        # 设定标签栏背景图
+        label_background = QPixmap("Pic/Left_Column_Transparent.png")
+        self.label_bg = QGraphicsPixmapItem(label_background)
+        self.label_bg.setPos(50, 200)
+        self.label_background_scene.addItem(self.label_bg)
 
     def set_label(self):
+        self.label_container = QWidget(self.central_widget)
+        self.label_container.setGeometry(140, 200, 340, 500)
+        self.label_background_scene = QGraphicsScene()
+        self.label_background_view = QGraphicsView(self.label_container)
+        self.label_background_view.setScene(self.label_background_scene)
+        self.label_background_view.setStyleSheet("border: 0px; background-color: transparent;")  # 移除边框
+
         # 加载时间、电流、温度标签
-        self.time_label = QLabel("时间:")
-        self.time_label.setFixedWidth(100)
+        self.time_label = QLabel("时间", self.label_container)
+        self.time_label.setGeometry(170, 10, 100, 30)
         self.label_font_config.apply_font(self.time_label)
-        self.left_layout.addWidget(self.time_label)
-        self.time_edit = QLineEdit()
-        self.time_edit.setFixedWidth(200)
-        self.time_edit.setFixedHeight(30)
-        self.left_layout.addWidget(self.time_edit)
-        self.left_layout.addSpacing(30)  # 添加额外的间距
+        self.time_edit = QLineEdit(self.label_container)
+        self.time_edit.setGeometry(105, 50, 200, 50)
 
-        self.current_label = QLabel("电流:")
-        self.current_label.setFixedWidth(100)
+        self.current_label = QLabel("电流", self.label_container)
+        self.current_label.setGeometry(170, 150, 100, 30)
         self.label_font_config.apply_font(self.current_label)
-        self.left_layout.addWidget(self.current_label)
-        self.current_edit = QLineEdit()
-        self.current_edit.setFixedWidth(200)
-        self.current_edit.setFixedHeight(30)
-        self.left_layout.addWidget(self.current_edit)
-        self.left_layout.addSpacing(30)  # 添加额外的间距
+        self.current_edit = QLineEdit(self.label_container)
+        self.current_edit.setGeometry(105, 190, 200, 50)
 
-        self.temp_label = QLabel("温度:")
-        self.temp_label.setFixedWidth(100)
+        self.temp_label = QLabel("温度", self.label_container)
+        self.temp_label.setGeometry(170, 290, 100, 30)
         self.label_font_config.apply_font(self.temp_label)
-        self.left_layout.addWidget(self.temp_label)
-        self.temp_edit = QLineEdit()
-        self.temp_edit.setFixedWidth(200)
-        self.temp_edit.setFixedHeight(30)
-        self.left_layout.addWidget(self.temp_edit)
-        self.left_layout.addSpacing(200)  # 添加额外的间距
+        self.temp_edit = QLineEdit(self.label_container)
+        self.temp_edit.setGeometry(105, 330, 200, 50)
+
+        self.add_button = QPushButton("添加点", self.label_container)
+        self.add_button.setGeometry(105, 160, 100, 30)
+        self.add_button.clicked.connect(self.add_point)
+
+        # 添加logo
+        # 设定logo图片
+        self.logo_pixmap = QPixmap("Pic/logo.png")
+        self.logo_label = QLabel(self.label_container)
+        self.logo_label.setPixmap(self.logo_pixmap)
+        self.logo_label.setGeometry(0, 400, 340, 100)
 
     def set_plot(self):
         # Create plot view and scene
-        self.plot_view = PlotView()
-        self.plot_view.setFixedSize(800, 400)  # 设置图表的固定大小
+        self.plot_container = QWidget(self.central_widget)
+        self.plot_container.setGeometry(500, 100, 800, 600)
+        self.plot_view = PlotView(self.plot_container)
+        self.plot_view.setFixedSize(800, 600)  # 设置图表的固定大小
         self.plot_view.setStyleSheet("background-color: lightblue;")  # 设置图表背景颜色
-        self.plot_layout.addWidget(self.plot_view)
         self.plot_scene = QGraphicsScene()
         self.plot_view.setScene(self.plot_scene)
+        self.plot_view.setStyleSheet("border: 0px; background-color: transparent;")  # 移除边框
 
         # Data storage
         self.data = []
@@ -292,8 +262,8 @@ class PlotWidget(QMainWindow):
 
 
 class PlotView(QGraphicsView):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent = None):
+        super().__init__(parent)
         self.setRenderHint(QPainter.Antialiasing)
 
         # 设置场景的背景刷为透明
