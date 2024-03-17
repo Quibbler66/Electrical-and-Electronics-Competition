@@ -13,7 +13,7 @@ class PlotWidget(QMainWindow):
         super().__init__()
         self.load_fonts()
         self.bar_font_config = FontConfig(self.fonts["DouyinSansBold"], 16, QColor(255, 255, 255))
-        self.title_font_config = FontConfig(self.fonts["DouyinSansBold"], 17, QColor(56, 87, 35))
+        self.title_font_config = FontConfig(self.fonts["DouyinSansBold"], 18, QColor(56, 87, 35))
         self.label_font_config = FontConfig(self.label_font, 21, QColor(56, 87, 35))
         self.legend_font_config = FontConfig(self.label_font, 10, QColor(0, 0, 0))
 
@@ -38,7 +38,7 @@ class PlotWidget(QMainWindow):
     def set_title(self):
         # 加载控件素材并设置属性
         self.title_container = QWidget(self.central_widget)
-        self.title_container.setGeometry(140, 50, 1000, 60)
+        self.title_container.setGeometry(140, 50, 1060, 65)
 
         # 顶部标题栏背景
         self.bar_scene = QGraphicsScene()
@@ -49,19 +49,19 @@ class PlotWidget(QMainWindow):
         self.bar_left = QGraphicsTextItem("数据呈现")
         self.bar_font_config.apply_font(self.bar_left)
         self.bar_scene.addItem(self.bar_left)
-        self.bar_left.setPos(51, 62)
+        self.bar_left.setPos(57, 64)
         self.bar_left.setZValue(1)
 
         self.bar_middle = QGraphicsTextItem("风力发电机组防雷击电涌保护器热稳定试验电源系统")
         self.title_font_config.apply_font(self.bar_middle)
         self.bar_scene.addItem(self.bar_middle)
-        self.bar_middle.setPos(203, 62)
+        self.bar_middle.setPos(210, 63)
         self.bar_middle.setZValue(1)
 
         self.bar_right = QGraphicsTextItem("图表呈现")
         self.bar_font_config.apply_font(self.bar_right)
         self.bar_scene.addItem(self.bar_right)
-        self.bar_right.setPos(893, 62)
+        self.bar_right.setPos(949, 64)
         self.bar_right.setZValue(1)
 
         self.bar_scene.addItem(self.titlebar)  # 将图片添加到场景中
@@ -94,7 +94,8 @@ class PlotWidget(QMainWindow):
 
         # 设定标题栏图片
         title_bar_above = QPixmap("Pic/Title_Bar_Above.png")
-        self.titlebar = QGraphicsPixmapItem(title_bar_above)
+        scaled_bar = title_bar_above.scaled(1060, 65,  Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        self.titlebar = QGraphicsPixmapItem(scaled_bar)
         self.titlebar.setPos(30, 50)
 
         # 设定标签栏背景图
@@ -208,7 +209,7 @@ class PlotWidget(QMainWindow):
 
     def draw_axis(self):
 
-        def draw_line_with_arrow(x1, y1, x2, y2, color = Qt.black, width = 3):
+        def draw_line_with_arrow(x1, y1, x2, y2, color = Qt.black, width = 3): # 创建箭头
             # 创建线条
             line = QGraphicsLineItem(x1, y1, x2, y2)
             pen = QPen(color)
