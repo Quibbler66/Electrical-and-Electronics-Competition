@@ -86,7 +86,7 @@ class PlotWidget(QMainWindow):
 
     def add_pics(self):  # 加载素材图片
         # 设定背景图片
-        pixmap = QPixmap("Pic/Skyline_Background.png")
+        pixmap = QPixmap("Pic/2.png")
         brush = QBrush(pixmap)  # 创建画刷并设置纹理
         palette = self.palette()  # 获取调色板并设置画刷作为背景
         palette.setBrush(QPalette.Background, brush)
