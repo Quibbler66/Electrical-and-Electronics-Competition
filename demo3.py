@@ -2,8 +2,8 @@ import random
 import sys
 from math import atan2, sin, pi, cos
 
-from PyQt5.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, \
-    QLineEdit, QPushButton, QLabel, QGraphicsTextItem, QGraphicsLineItem, QHBoxLayout, QGraphicsPixmapItem, \
+from PyQt5.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QWidget, \
+    QLabel, QGraphicsTextItem, QGraphicsLineItem, QGraphicsPixmapItem, \
     QGraphicsPolygonItem
 from PyQt5.QtGui import QPainter, QPen, QFont, QPixmap, QBrush, QPalette, QFontDatabase, QColor, QPolygonF
 from PyQt5.QtCore import Qt, QPointF, QTimer
@@ -79,8 +79,8 @@ class PlotWidget(QMainWindow):
     def load_fonts(self):
         # 加载多个字体文件
         fonts = {}
-        font_files = ["Font/DouyinSansBold.otf", "Font/庞门正道标题体.ttf"]
-        font_names = ["DouyinSansBold", "庞门正道标题体"]
+        font_files = ["Font/DouyinSansBold.otf", "Font/庞门正道标题体.ttf", "Font/Technology-Bold.ttf"]
+        font_names = ["标题字体", "标签字体", "数据字体"]
 
         for font_file, font_name in zip(font_files, font_names):
             font_id = QFontDatabase.addApplicationFont(font_file)
@@ -92,10 +92,16 @@ class PlotWidget(QMainWindow):
                 print(f"Fail to load font from {font_file}")
 
         # 设定字体
-        self.bar_font_config = FontConfig(fonts["DouyinSansBold"], 16, QColor(255, 255, 255))
-        self.title_font_config = FontConfig(fonts["DouyinSansBold"], 18, QColor(56, 87, 35))
-        self.label_font_config = FontConfig(fonts["庞门正道标题体"], 21, QColor(56, 87, 35))
-        self.legend_font_config = FontConfig(fonts["庞门正道标题体"], 10, QColor(0, 0, 0))
+        self.bar_font_config = FontConfig(fonts["标题字体"], 16, QColor(255, 255, 255))
+        self.title_font_config = FontConfig(fonts["标题字体"], 18, QColor(56, 87, 35))
+        self.label_font_config = FontConfig(fonts["标签字体"], 21, QColor(56, 87, 35))
+        self.legend_font_config = FontConfig(fonts["标签字体"], 10, QColor(0, 0, 0))
+        self.time_font_config = FontConfig(fonts["数据字体"], 30, QColor(0, 0, 0),
+                                           "5px solid rgb(56, 87, 35);")
+        self.current_font_config = FontConfig(fonts["数据字体"], 30, QColor(0, 0, 255),
+                                              "5px solid rgb(56, 87, 35);")
+        self.temp_font_config = FontConfig(fonts["数据字体"], 30, QColor(255, 0, 0),
+                                           "5px solid rgb(56, 87, 35);")
 
     def add_pics(self):  # 加载素材图片
         # 设定背景图片
@@ -148,9 +154,8 @@ class PlotWidget(QMainWindow):
         time_label.setGeometry(170, 10, 100, 30)
         self.label_font_config.apply_font(time_label)
         # 时间输入
-        self.time_edit = QLineEdit(label_container)
-        self.time_edit.setStyleSheet("border: 5px solid rgb(56, 87, 35);")
-        self.time_edit.setGeometry(105, 50, 200, 75)
+        self.time_shower = QLabel(label_container)
+        self.time_shower.setGeometry(105, 50, 200, 75)
         # 时间标签图
         time_pic = QLabel(label_container)
         time_pic.setPixmap(self.scaled_time)
@@ -160,9 +165,8 @@ class PlotWidget(QMainWindow):
         current_label.setGeometry(170, 150, 100, 30)
         self.label_font_config.apply_font(current_label)
         # 电流输入
-        self.current_edit = QLineEdit(label_container)
-        self.current_edit.setStyleSheet("border: 5px solid rgb(56, 87, 35);")
-        self.current_edit.setGeometry(105, 190, 200, 75)
+        self.current_shower = QLabel(label_container)
+        self.current_shower.setGeometry(105, 190, 200, 75)
         # 电流标签图
         current_pic = QLabel(label_container)
         current_pic.setPixmap(self.scaled_current)
@@ -172,9 +176,8 @@ class PlotWidget(QMainWindow):
         temp_label.setGeometry(170, 290, 100, 30)
         self.label_font_config.apply_font(temp_label)
         # 温度输入
-        self.temp_edit = QLineEdit(label_container)
-        self.temp_edit.setStyleSheet("border: 5px solid rgb(56, 87, 35);")
-        self.temp_edit.setGeometry(105, 330, 200, 75)
+        self.temp_shower = QLabel(label_container)
+        self.temp_shower.setGeometry(105, 330, 200, 75)
         # 温度标签图
         temp_pic = QLabel(label_container)
         temp_pic.setPixmap(self.scaled_temp)
@@ -192,11 +195,6 @@ class PlotWidget(QMainWindow):
         lower_dividing_label = QLabel(label_container)
         lower_dividing_label.setPixmap(self.scaled_dividing)
         lower_dividing_label.setGeometry(15, 420, 300, 3)
-
-        # 输入按钮
-        #self.add_button = QPushButton("添加点", label_container)
-        #self.add_button.setGeometry(105, 160, 50, 30)
-        #self.add_button.clicked.connect(self.add_point)
 
         # 设定logo图片
         self.logo_label = QLabel(label_container)
@@ -308,9 +306,12 @@ class PlotWidget(QMainWindow):
             self.temp = self.time + random.uniform(-0.5, 0.5)
 
             # 更新输入框中的显示值
-            self.time_edit.setText(f"{self.time:.2f}")  # 将时间值转换为字符串格式，并保留两位小数
-            self.current_edit.setText(f"{self.current:.2f}")  # 同上
-            self.temp_edit.setText(f"{self.temp + 80:.2f}")  # 同上
+            self.time_shower.setText(f"{self.time:.2f}")  # 将时间值转换为字符串格式，并保留两位小数
+            self.time_font_config.apply_font(self.time_shower)
+            self.current_shower.setText(f"{self.current:.2f}")  # 同上
+            self.current_font_config.apply_font(self.current_shower)
+            self.temp_shower.setText(f"{self.temp + 80:.2f}")  # 同上
+            self.temp_font_config.apply_font(self.temp_shower)
 
             # 每个单位时间对应的像素值
             self.time_pixel_ratio = 20
@@ -329,11 +330,6 @@ class PlotWidget(QMainWindow):
 
             # 连接同一类别的点
             self.connect_points()
-
-            # 清除输入字段
-            # self.time_edit.clear()
-            # self.current_edit.clear()
-            # self.temp_edit.clear()
 
         except ValueError:
             print("Invalid input")
