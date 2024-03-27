@@ -11,22 +11,19 @@ from PyQt5.QtCore import Qt, QPointF
 class PlotWidget(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.load_fonts()
-        self.bar_font_config = FontConfig(self.fonts["DouyinSansBold"], 16, QColor(255, 255, 255))
-        self.title_font_config = FontConfig(self.fonts["DouyinSansBold"], 18, QColor(56, 87, 35))
-        self.label_font_config = FontConfig(self.label_font, 21, QColor(56, 87, 35))
-        self.legend_font_config = FontConfig(self.label_font, 10, QColor(0, 0, 0))
 
         self.setWindowTitle("风力发电机组防雷击电涌保护器热稳定试验电源系统")
         self.setGeometry(100, 100, 1280, 720)
 
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
+        # 加载并设置字体
+        self.load_fonts()
 
         # 调用素材
         self.add_pics()
 
-        # 加载时间、电流、温度标签
+        # 加载时间、电流、温度标签及按钮
         self.set_label()
 
         # 加载标题栏
@@ -37,38 +34,38 @@ class PlotWidget(QMainWindow):
 
     def set_title(self):
         # 加载控件素材并设置属性
-        self.title_container = QWidget(self.central_widget)
-        self.title_container.setGeometry(140, 50, 1060, 65)
+        title_container = QWidget(self.central_widget)
+        title_container.setGeometry(140, 50, 1060, 65)
 
         # 顶部标题栏背景
-        self.bar_scene = QGraphicsScene()
-        self.bar_view = QGraphicsView(self.title_container)
-        self.bar_view.setScene(self.bar_scene)
-        self.bar_view.setStyleSheet("border: 0px; background-color: transparent;")  # 移除边框
+        bar_scene = QGraphicsScene()
+        bar_view = QGraphicsView(title_container)
+        bar_view.setScene(bar_scene)
+        bar_view.setStyleSheet("border: 0px; background-color: transparent;")  # 移除边框
         # 标题栏文字
-        self.bar_left = QGraphicsTextItem("数据呈现")
-        self.bar_font_config.apply_font(self.bar_left)
-        self.bar_scene.addItem(self.bar_left)
-        self.bar_left.setPos(57, 64)
-        self.bar_left.setZValue(1)
+        bar_left = QGraphicsTextItem("数据呈现")
+        self.bar_font_config.apply_font(bar_left)
+        bar_scene.addItem(bar_left)
+        bar_left.setPos(57, 64)
+        bar_left.setZValue(1)
 
-        self.bar_middle = QGraphicsTextItem("风力发电机组防雷击电涌保护器热稳定试验电源系统")
-        self.title_font_config.apply_font(self.bar_middle)
-        self.bar_scene.addItem(self.bar_middle)
-        self.bar_middle.setPos(210, 63)
-        self.bar_middle.setZValue(1)
+        bar_middle = QGraphicsTextItem("风力发电机组防雷击电涌保护器热稳定试验电源系统")
+        self.title_font_config.apply_font(bar_middle)
+        bar_scene.addItem(bar_middle)
+        bar_middle.setPos(210, 63)
+        bar_middle.setZValue(1)
 
-        self.bar_right = QGraphicsTextItem("图表呈现")
-        self.bar_font_config.apply_font(self.bar_right)
-        self.bar_scene.addItem(self.bar_right)
-        self.bar_right.setPos(949, 64)
-        self.bar_right.setZValue(1)
+        bar_right = QGraphicsTextItem("图表呈现")
+        self.bar_font_config.apply_font(bar_right)
+        bar_scene.addItem(bar_right)
+        bar_right.setPos(949, 64)
+        bar_right.setZValue(1)
 
-        self.bar_scene.addItem(self.titlebar)  # 将图片添加到场景中
+        bar_scene.addItem(self.titlebar)  # 将图片添加到场景中
 
     def load_fonts(self):
         # 加载多个字体文件
-        self.fonts = {}
+        fonts = {}
         font_files = ["Font/DouyinSansBold.otf", "Font/庞门正道标题体.ttf"]
         font_names = ["DouyinSansBold", "庞门正道标题体"]
 
@@ -77,24 +74,27 @@ class PlotWidget(QMainWindow):
             if font_id != -1:
                 font_families = QFontDatabase.applicationFontFamilies(font_id)
                 if font_families:
-                    self.fonts[font_name] = QFont(font_families[0], 20)
+                    fonts[font_name] = QFont(font_families[0], 20)
             else:
                 print(f"Fail to load font from {font_file}")
 
         # 设定字体
-        self.label_font = self.fonts["庞门正道标题体"]
+        self.bar_font_config = FontConfig(fonts["DouyinSansBold"], 16, QColor(255, 255, 255))
+        self.title_font_config = FontConfig(fonts["DouyinSansBold"], 18, QColor(56, 87, 35))
+        self.label_font_config = FontConfig(fonts["庞门正道标题体"], 21, QColor(56, 87, 35))
+        self.legend_font_config = FontConfig(fonts["庞门正道标题体"], 10, QColor(0, 0, 0))
 
     def add_pics(self):  # 加载素材图片
         # 设定背景图片
-        pixmap = QPixmap("Pic/2.png")
-        brush = QBrush(pixmap)  # 创建画刷并设置纹理
+        pixmap = QPixmap("Pic/new_bg.png")
+        brush = QBrush(pixmap.scaled(1280, 720, Qt.IgnoreAspectRatio, Qt.SmoothTransformation))  # 创建画刷并设置纹理
         palette = self.palette()  # 获取调色板并设置画刷作为背景
         palette.setBrush(QPalette.Background, brush)
         self.setPalette(palette)
 
         # 设定标题栏图片
         title_bar_above = QPixmap("Pic/Title_Bar_Above.png")
-        scaled_bar = title_bar_above.scaled(1060, 65,  Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        scaled_bar = title_bar_above.scaled(1060, 65, Qt.KeepAspectRatio, Qt.SmoothTransformation)
         self.titlebar = QGraphicsPixmapItem(scaled_bar)
         self.titlebar.setPos(30, 50)
 
@@ -104,101 +104,101 @@ class PlotWidget(QMainWindow):
         self.label_bg.setPos(50, 200)
 
         # 添加logo
-        self.logo_pixmap = QPixmap("Pic/logo.png")
-        self.scaled_logo = self.logo_pixmap.scaled(320, 94, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        logo_pixmap = QPixmap("Pic/logo.png")
+        self.scaled_logo = logo_pixmap.scaled(320, 94, Qt.KeepAspectRatio, Qt.SmoothTransformation)
 
         # 添加标签图片
-        self.label_time = QPixmap("Pic/Label_Time.png")
-        self.scaled_time = self.label_time.scaled(73, 75, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-        self.label_current = QPixmap("Pic/Label_Current.png")
-        self.scaled_current = self.label_current.scaled(73, 75, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-        self.label_temp = QPixmap("Pic/Label_Temperature.png")
-        self.scaled_temp = self.label_temp.scaled(73, 75, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        label_time = QPixmap("Pic/Label_Time.png")
+        self.scaled_time = label_time.scaled(73, 75, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        label_current = QPixmap("Pic/Label_Current.png")
+        self.scaled_current = label_current.scaled(73, 75, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        label_temp = QPixmap("Pic/Label_Temperature.png")
+        self.scaled_temp = label_temp.scaled(73, 75, Qt.KeepAspectRatio, Qt.SmoothTransformation)
 
         # 添加分割符
-        self.dividing_line = QPixmap("Pic/Left_Dividing_Line.png")
-        self.scaled_dividing = self.dividing_line.scaled(300, 3, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+        dividing_line = QPixmap("Pic/Left_Dividing_Line.png")
+        self.scaled_dividing = dividing_line.scaled(300, 3, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
 
     def set_label(self):
         # 设定标签栏背景图
-        self.label_container = QWidget(self.central_widget)
-        self.label_container.setGeometry(140, 175, 340, 500)
-        self.label_background_scene = QGraphicsScene()
-        self.label_background_view = QGraphicsView(self.label_container)
-        self.label_background_view.setScene(self.label_background_scene)
-        self.label_background_scene.addItem(self.label_bg)
-        self.label_background_view.setStyleSheet("border: 0px; background-color: transparent;")  # 移除边框
+        label_container = QWidget(self.central_widget)
+        label_container.setGeometry(140, 175, 340, 500)
+        label_background_scene = QGraphicsScene()
+        label_background_view = QGraphicsView(label_container)
+        label_background_view.setScene(label_background_scene)
+        label_background_scene.addItem(self.label_bg)
+        label_background_view.setStyleSheet("border: 0px; background-color: transparent;")  # 移除边框
 
         # 加载时间、电流、温度标签
         # 时间标签
-        self.time_label = QLabel("时间", self.label_container)
-        self.time_label.setGeometry(170, 10, 100, 30)
-        self.label_font_config.apply_font(self.time_label)
+        time_label = QLabel("时间", label_container)
+        time_label.setGeometry(170, 10, 100, 30)
+        self.label_font_config.apply_font(time_label)
         # 时间输入
-        self.time_edit = QLineEdit(self.label_container)
+        self.time_edit = QLineEdit(label_container)
         self.time_edit.setStyleSheet("border: 5px solid rgb(56, 87, 35);")
         self.time_edit.setGeometry(105, 50, 200, 75)
         # 时间标签图
-        self.time_pic = QLabel(self.label_container)
-        self.time_pic.setPixmap(self.scaled_time)
-        self.time_pic.setGeometry(20, 50, 73, 75)
+        time_pic = QLabel(label_container)
+        time_pic.setPixmap(self.scaled_time)
+        time_pic.setGeometry(20, 50, 73, 75)
         # 电流标签
-        self.current_label = QLabel("电流", self.label_container)
-        self.current_label.setGeometry(170, 150, 100, 30)
-        self.label_font_config.apply_font(self.current_label)
+        current_label = QLabel("电流", label_container)
+        current_label.setGeometry(170, 150, 100, 30)
+        self.label_font_config.apply_font(current_label)
         # 电流输入
-        self.current_edit = QLineEdit(self.label_container)
+        self.current_edit = QLineEdit(label_container)
         self.current_edit.setStyleSheet("border: 5px solid rgb(56, 87, 35);")
         self.current_edit.setGeometry(105, 190, 200, 75)
         # 电流标签图
-        self.current_pic = QLabel(self.label_container)
-        self.current_pic.setPixmap(self.scaled_current)
-        self.current_pic.setGeometry(20, 190, 73, 75)
+        current_pic = QLabel(label_container)
+        current_pic.setPixmap(self.scaled_current)
+        current_pic.setGeometry(20, 190, 73, 75)
         # 温度标签
-        self.temp_label = QLabel("温度", self.label_container)
-        self.temp_label.setGeometry(170, 290, 100, 30)
-        self.label_font_config.apply_font(self.temp_label)
+        temp_label = QLabel("温度", label_container)
+        temp_label.setGeometry(170, 290, 100, 30)
+        self.label_font_config.apply_font(temp_label)
         # 温度输入
-        self.temp_edit = QLineEdit(self.label_container)
+        self.temp_edit = QLineEdit(label_container)
         self.temp_edit.setStyleSheet("border: 5px solid rgb(56, 87, 35);")
         self.temp_edit.setGeometry(105, 330, 200, 75)
         # 温度标签图
-        self.temp_pic = QLabel(self.label_container)
-        self.temp_pic.setPixmap(self.scaled_temp)
-        self.temp_pic.setGeometry(20, 330, 73, 75)
+        temp_pic = QLabel(label_container)
+        temp_pic.setPixmap(self.scaled_temp)
+        temp_pic.setGeometry(20, 330, 73, 75)
 
         # 分隔符
-        self.upper_dividing_label = QLabel(self.label_container)
-        self.upper_dividing_label.setPixmap(self.scaled_dividing)
-        self.upper_dividing_label.setGeometry(15, 140, 300, 3)
+        upper_dividing_label = QLabel(label_container)
+        upper_dividing_label.setPixmap(self.scaled_dividing)
+        upper_dividing_label.setGeometry(15, 140, 300, 3)
 
-        self.middle_dividing_label = QLabel(self.label_container)
-        self.middle_dividing_label.setPixmap(self.scaled_dividing)
-        self.middle_dividing_label.setGeometry(15, 280, 300, 3)
+        middle_dividing_label = QLabel(label_container)
+        middle_dividing_label.setPixmap(self.scaled_dividing)
+        middle_dividing_label.setGeometry(15, 280, 300, 3)
 
-        self.lower_dividing_label = QLabel(self.label_container)
-        self.lower_dividing_label.setPixmap(self.scaled_dividing)
-        self.lower_dividing_label.setGeometry(15, 420, 300, 3)
+        lower_dividing_label = QLabel(label_container)
+        lower_dividing_label.setPixmap(self.scaled_dividing)
+        lower_dividing_label.setGeometry(15, 420, 300, 3)
 
         # 输入按钮
-        self.add_button = QPushButton("添加点", self.label_container)
+        self.add_button = QPushButton("添加点", label_container)
         self.add_button.setGeometry(105, 160, 50, 30)
         self.add_button.clicked.connect(self.add_point)
 
         # 设定logo图片
-        self.logo_label = QLabel(self.label_container)
+        self.logo_label = QLabel(label_container)
         self.logo_label.setPixmap(self.scaled_logo)
         self.logo_label.setGeometry(10, 420, 320, 94)
 
     def set_plot(self):
         # Create plot view and scene
-        self.plot_container = QWidget(self.central_widget)
-        self.plot_container.setGeometry(500, 175, 700, 500)
-        self.plot_view = PlotView(self.plot_container)
-        self.plot_view.setFixedSize(700, 500)  # 设置图表的固定大小
+        plot_container = QWidget(self.central_widget)
+        plot_container.setGeometry(500, 175, 700, 500)
+        plot_view = PlotView(plot_container)
+        plot_view.setFixedSize(700, 500)  # 设置图表的固定大小
         self.plot_scene = QGraphicsScene()
-        self.plot_view.setScene(self.plot_scene)
-        self.plot_view.setStyleSheet("border: 10px solid rgb(190, 208, 223); background-color: white;")  # 移除边框
+        plot_view.setScene(self.plot_scene)
+        plot_view.setStyleSheet("border: 10px solid rgb(190, 208, 223); background-color: white;")  # 移除边框
 
         # Data storage
         self.data = []
@@ -209,7 +209,7 @@ class PlotWidget(QMainWindow):
 
     def draw_axis(self):
 
-        def draw_line_with_arrow(x1, y1, x2, y2, color = Qt.black, width = 3): # 创建箭头
+        def draw_line_with_arrow(x1, y1, x2, y2, color = Qt.black, width = 3):  # 创建箭头
             # 创建线条
             line = QGraphicsLineItem(x1, y1, x2, y2)
             pen = QPen(color)
@@ -350,11 +350,6 @@ class PlotView(QGraphicsView):
     def __init__(self, parent = None):
         super().__init__(parent)
         self.setRenderHint(QPainter.Antialiasing)
-
-        # 设置场景的背景刷为透明
-        # self.setBackgroundBrush(Qt.transparent)
-        # 启用视图的透明背景属性
-        # self.setAttribute(Qt.WA_TranslucentBackground)
 
 
 class FontConfig:
