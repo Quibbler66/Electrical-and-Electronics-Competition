@@ -1,3 +1,4 @@
+import random
 import sys
 from math import atan2, sin, pi, cos
 
@@ -5,7 +6,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsS
     QLineEdit, QPushButton, QLabel, QGraphicsTextItem, QGraphicsLineItem, QHBoxLayout, QGraphicsPixmapItem, \
     QGraphicsPolygonItem
 from PyQt5.QtGui import QPainter, QPen, QFont, QPixmap, QBrush, QPalette, QFontDatabase, QColor, QPolygonF
-from PyQt5.QtCore import Qt, QPointF
+from PyQt5.QtCore import Qt, QPointF, QTimer
 
 
 class PlotWidget(QMainWindow):
@@ -17,6 +18,10 @@ class PlotWidget(QMainWindow):
 
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
+
+        # 更新数据
+        self.set_timer()
+
         # 加载并设置字体
         self.load_fonts()
 
@@ -31,6 +36,14 @@ class PlotWidget(QMainWindow):
 
         # 加载图表
         self.set_plot()
+
+    def set_timer(self):
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.add_point)  # 将定时器的timeout信号连接到add_point方法
+        self.timer.start(500)  # 设置定时器每500毫秒触发一次
+        self.time = 0  # 初始化时间为0
+        self.current = 20  # 初始化current为中间值20
+        self.temp = 0  # 初始化temp为0，它将基于time变化
 
     def set_title(self):
         # 加载控件素材并设置属性
@@ -181,9 +194,9 @@ class PlotWidget(QMainWindow):
         lower_dividing_label.setGeometry(15, 420, 300, 3)
 
         # 输入按钮
-        self.add_button = QPushButton("添加点", label_container)
-        self.add_button.setGeometry(105, 160, 50, 30)
-        self.add_button.clicked.connect(self.add_point)
+        #self.add_button = QPushButton("添加点", label_container)
+        #self.add_button.setGeometry(105, 160, 50, 30)
+        #self.add_button.clicked.connect(self.add_point)
 
         # 设定logo图片
         self.logo_label = QLabel(label_container)
@@ -265,7 +278,7 @@ class PlotWidget(QMainWindow):
         self.plot_scene.addItem(blue_line)
 
         # Add text for blue line
-        blue_text = QGraphicsTextItem("温度")
+        blue_text = QGraphicsTextItem("电流")
         self.legend_font_config.apply_font(blue_text)
         blue_text.setPos(605, -60)  # 向上移动温度文字
         self.plot_scene.addItem(blue_text)
@@ -278,39 +291,49 @@ class PlotWidget(QMainWindow):
         self.plot_scene.addItem(red_line)
 
         # Add text for red line
-        red_text = QGraphicsTextItem("电流")
+        red_text = QGraphicsTextItem("温度")
         self.legend_font_config.apply_font(red_text)
         red_text.setPos(605, -40)  # 向下移动电流文字
         self.plot_scene.addItem(red_text)
 
     def add_point(self):
         try:
-            time = float(self.time_edit.text())
-            current = float(self.current_edit.text())
-            temp = float(self.temp_edit.text())
+            # 更新time，每次加1
+            self.time += 0.5
+
+            # 在18到22之间随机生成current的值
+            self.current = random.uniform(19, 21)
+
+            # 让temp在y=x（这里x是time）的周边小范围内随机分布，假定这个范围是time ± 1
+            self.temp = self.time + random.uniform(-0.5, 0.5)
+
+            # 更新输入框中的显示值
+            self.time_edit.setText(f"{self.time:.2f}")  # 将时间值转换为字符串格式，并保留两位小数
+            self.current_edit.setText(f"{self.current:.2f}")  # 同上
+            self.temp_edit.setText(f"{self.temp + 80:.2f}")  # 同上
 
             # 每个单位时间对应的像素值
-            time_pixel_ratio = 700 / 70
+            self.time_pixel_ratio = 20
             # 每个单位电流对应的像素值
-            current_pixel_ratio = 300 / 30
+            self.current_pixel_ratio = 10
             # 每个单位温度对应的像素值
-            temp_pixel_ratio = 300 / 100
+            self.temp_pixel_ratio = 10
 
             # 将时间、电流和温度值转换为像素位置
-            x = 50 + time * time_pixel_ratio
-            y_current = 350 - current * current_pixel_ratio
-            y_temp = 350 - temp * temp_pixel_ratio
+            x = 50 + self.time * self.time_pixel_ratio
+            y_current = 350 - self.current * self.current_pixel_ratio
+            y_temp = 350 - self.temp * self.temp_pixel_ratio
 
-            self.data.append((time, current, temp))
+            self.data.append((self.time, self.current, self.temp))
             self.draw_point(x, y_current, y_temp)
 
             # 连接同一类别的点
             self.connect_points()
 
             # 清除输入字段
-            self.time_edit.clear()
-            self.current_edit.clear()
-            self.temp_edit.clear()
+            # self.time_edit.clear()
+            # self.current_edit.clear()
+            # self.temp_edit.clear()
 
         except ValueError:
             print("Invalid input")
@@ -328,10 +351,10 @@ class PlotWidget(QMainWindow):
             pen = QPen(Qt.blue)
             pen.setWidth(2)
             for i in range(len(self.data) - 1):
-                x1 = 50 + (self.data[i][0] * 700 / 70)
-                y1 = 350 - (self.data[i][1] * 300 / 30)
-                x2 = 50 + (self.data[i + 1][0] * 700 / 70)
-                y2 = 350 - (self.data[i + 1][1] * 300 / 30)
+                x1 = 50 + (self.data[i][0] * self.time_pixel_ratio)
+                y1 = 350 - (self.data[i][1] * self.current_pixel_ratio)
+                x2 = 50 + (self.data[i + 1][0] * self.time_pixel_ratio)
+                y2 = 350 - (self.data[i + 1][1] * self.current_pixel_ratio)
                 self.plot_scene.addLine(x1, y1, x2, y2, pen)
 
         # Connect temperature points
@@ -339,10 +362,10 @@ class PlotWidget(QMainWindow):
             pen = QPen(Qt.red)
             pen.setWidth(2)
             for i in range(len(self.data) - 1):
-                x1 = 50 + (self.data[i][0] * 700 / 70)
-                y1 = 350 - (self.data[i][2] * 300 / 100)
-                x2 = 50 + (self.data[i + 1][0] * 700 / 70)
-                y2 = 350 - (self.data[i + 1][2] * 300 / 100)
+                x1 = 50 + (self.data[i][0] * self.time_pixel_ratio)
+                y1 = 350 - (self.data[i][2] * self.temp_pixel_ratio)
+                x2 = 50 + (self.data[i + 1][0] * self.time_pixel_ratio)
+                y2 = 350 - (self.data[i + 1][2] * self.temp_pixel_ratio)
                 self.plot_scene.addLine(x1, y1, x2, y2, pen)
 
 
