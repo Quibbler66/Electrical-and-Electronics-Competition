@@ -202,6 +202,7 @@ class PlotWidget(QMainWindow):
         self.logo_label.setGeometry(10, 420, 320, 94)
 
     def set_plot(self):
+
         # Create plot view and scene
         plot_container = QWidget(self.central_widget)
         plot_container.setGeometry(500, 175, 700, 500)
@@ -217,6 +218,22 @@ class PlotWidget(QMainWindow):
         # Draw axis and legend
         self.draw_axis()
         self.draw_legend()
+
+        self.draw_grid()
+
+    def draw_grid(self):
+        grid_interval = 50  # 网格间隔大小
+        # 绘制垂直线
+        for x in range(50, 600, grid_interval):
+            vertical_line = QGraphicsLineItem(x, 50, x, 350)
+            vertical_line.setPen(QPen(Qt.gray, 1, Qt.DotLine))  # 设置为灰色，1像素宽的点线
+            self.plot_scene.addItem(vertical_line)
+
+        # 绘制水平线
+        for y in range(50, 350, grid_interval):
+            horizontal_line = QGraphicsLineItem(50, y, 600, y)
+            horizontal_line.setPen(QPen(Qt.gray, 1, Qt.DotLine))
+            self.plot_scene.addItem(horizontal_line)
 
     def draw_axis(self):
 
@@ -248,10 +265,22 @@ class PlotWidget(QMainWindow):
 
         # Draw X axis
         draw_line_with_arrow(50, 350, 600, 350)
-        x_axis_label = QGraphicsTextItem("时间")
+        x_axis_label = QGraphicsTextItem("时间/min")
         self.legend_font_config.apply_font(x_axis_label)
         x_axis_label.setPos(610, 340)
         self.plot_scene.addItem(x_axis_label)
+
+        # 绘制水平坐标轴下方的数字
+        start_x = 50  # 假设坐标轴起点在x=50处
+        interval = 50  # 每隔50像素显示一个数字
+        value_increment = 2  # 每次增加2.5
+        value = 0.0  # 起始值为0
+        for x in range(start_x, 650, interval):  # 假设坐标轴终点在x=650处
+            text_item = QGraphicsTextItem(f"{value:.0f}")  # 创建文本项
+            text_width = text_item.boundingRect().width()  # 获取文本宽度
+            text_item.setPos(x - text_width / 2, 360)  # 设置文本位置，使其中心对齐坐标点
+            self.plot_scene.addItem(text_item)  # 将文本项添加到场景中
+            value += value_increment  # 增加值
 
         # Draw Y axis for current
         draw_line_with_arrow(50, 50, 50, 350)
@@ -296,29 +325,29 @@ class PlotWidget(QMainWindow):
 
     def add_point(self):
         try:
-            # 更新time，每次加1
+            # 更新time，每次加0.5
             self.time += 0.5
 
             # 在18到22之间随机生成current的值
             self.current = random.uniform(19, 21)
 
-            # 让temp在y=x（这里x是time）的周边小范围内随机分布，假定这个范围是time ± 1
-            self.temp = self.time + random.uniform(-0.5, 0.5)
+            # 让temp在y=3x的周边小范围内随机分布，假定这个范围是time ± 1
+            self.temp = 3 * self.time + random.uniform(-1, 1)
 
             # 更新输入框中的显示值
-            self.time_shower.setText(f"{self.time:.2f}")  # 将时间值转换为字符串格式，并保留两位小数
+            self.time_shower.setText(f"{self.time:.2f}/min")  # 将时间值转换为字符串格式，并保留两位小数
             self.time_font_config.apply_font(self.time_shower)
-            self.current_shower.setText(f"{self.current:.2f}")  # 同上
+            self.current_shower.setText(f"{self.current:.2f}/mA")  # 同上
             self.current_font_config.apply_font(self.current_shower)
-            self.temp_shower.setText(f"{self.temp + 80:.2f}")  # 同上
+            self.temp_shower.setText(f"{self.temp + 30:.2f}/℃")  # 同上
             self.temp_font_config.apply_font(self.temp_shower)
 
             # 每个单位时间对应的像素值
-            self.time_pixel_ratio = 20
+            self.time_pixel_ratio = 550 / 22
             # 每个单位电流对应的像素值
             self.current_pixel_ratio = 10
             # 每个单位温度对应的像素值
-            self.temp_pixel_ratio = 10
+            self.temp_pixel_ratio = 5
 
             # 将时间、电流和温度值转换为像素位置
             x = 50 + self.time * self.time_pixel_ratio
